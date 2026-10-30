@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Attendly – Student Attendance</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@500;700&family=Source+Sans+3:wght@400;600&display=swap">
+<style>
+:root{--bg:#eef1f6;--card:#fff;--ink:#102a43;--mut:#5a6b7e;--line:#d6dde8;--acc:#b8420f;--accink:#fff;--hi:#fdeee6;--ok:#1b7f4b;--bad:#b4302c;--warn:#9a6700;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1722;--card:#15232f;--ink:#e8eef5;--mut:#9fb0c2;--line:#2a3d4f;--acc:#f0925e;--accink:#0d1722;--hi:#2d2018;--ok:#6ccf95;--bad:#f2917e;--warn:#e8b94d}}
+:root[data-theme="dark"]{--bg:#0d1722;--card:#15232f;--ink:#e8eef5;--mut:#9fb0c2;--line:#2a3d4f;--acc:#f0925e;--accink:#0d1722;--hi:#2d2018;--ok:#6ccf95;--bad:#f2917e;--warn:#e8b94d}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Source Sans 3",system-ui,sans-serif}
+h1,h2,h3{font-family:Sora,system-ui,sans-serif;margin:0}
+header{background:#102a43;color:#fff;padding:26px 20px;border-bottom:4px solid #f0925e}
+.wrap{max-width:1100px;margin:0 auto}
+header h1{font-size:clamp(26px,4.5vw,36px)}
+header p{margin:4px 0 0;opacity:.85}
+main{padding:20px 16px 40px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 16px;min-width:130px}
+.stat b{font:700 22px Sora,sans-serif;display:block}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px;flex-wrap:wrap}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mut);padding:10px 14px;font:600 15px "Source Sans 3",sans-serif;cursor:pointer}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--acc)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+.panel h2{font-size:18px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+label{display:block;font-size:14px;color:var(--mut);margin-bottom:4px}
+input,select{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{background:var(--acc);color:var(--accink);border:0;border-radius:8px;padding:10px 16px;font:600 15px "Source Sans 3",sans-serif;cursor:pointer}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.sm{padding:5px 10px;font-size:13px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:820px;font-size:15px}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600;color:var(--mut);font-size:14px;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+td.nm{font-weight:600}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid currentColor}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.mut{color:var(--mut)}
+.meter{display:inline-block;width:70px;height:8px;background:var(--line);border-radius:4px;vertical-align:middle;margin-right:8px;overflow:hidden}
+.meter i{display:block;height:100%;background:currentColor}
+.hide{display:none}
+.mk label{display:inline-flex;align-items:center;gap:6px;margin:0 14px 0 0;color:var(--ink)}
+.mk input{width:auto}
+#msg{min-height:24px;font-weight:600;margin:0 0 10px}
+footer{text-align:center;color:var(--mut);font-size:14px;padding:0 16px 32px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>Attendly</h1>
+<p>Mark attendance by course, approve OD requests and see who is short of the 75% rule.</p>
+</div></header>
+
+<main class="wrap">
+<div class="stats" id="stats"></div>
+<div class="tabs" role="tablist">
+<button role="tab" aria-selected="true" data-v="reg">Register</button>
+<button role="tab" aria-selected="false" data-v="mark">Mark attendance</button>
+<button role="tab" aria-selected="false" data-v="od">OD requests</button>
+<button role="tab" aria-selected="false" data-v="crs">Course attendance</button>
+</div>
+<p id="msg" role="status"></p>
+
+<section id="reg">
+<div class="panel"><h2>Add a student</h2>
+<div class="grid">
+<div><label for="fn">Name of the student</label><input id="fn"></div>
+<div><label for="fr">Reg no.</label><input id="fr"></div>
+<div><label for="fc">Course</label><input id="fc" list="cl" placeholder="Pick or type a course"></div>
+</div>
+<datalist id="cl"></datalist>
+<div style="margin-top:14px"><button class="btn" id="addBtn">Add student</button></div></div>
+<div class="scroll"><table><thead><tr><th>Name</th><th>Reg no.</th><th>Course</th><th class="n">Present</th><th class="n">Absent</th><th class="n">OD</th><th class="n">Classes held</th><th>Attendance %</th><th>Grade</th><th>Status</th></tr></thead><tbody id="tb"></tbody></table></div>
+<p class="mut">Attendance % = (present + approved OD) ÷ classes held. Grade: 95%+ O, 90%+ A+, 85%+ A, 75%+ B, 65%+ C, below 65% F. Below 75% is a shortage.</p>
+</section>
+
+<section id="mark" class="hide">
+<div class="panel"><h2>Mark a class</h2>
+<div class="grid"><div><label for="mc">Course</label><select id="mc"></select></div>
+<div><label for="md">Class date</label><input id="md" type="date"></div></div>
+<div id="ml" style="margin-top:14px"></div>
+<button class="btn" id="saveMark" style="margin-top:8px">Save attendance</button></div>
+</section>
+
+<section id="od" class="hide">
+<div class="panel"><h2>Raise an OD request</h2>
+<div class="grid"><div><label for="os">Student</label><select id="os"></select></div>
+<div><label for="odt">Date of absence</label><input id="odt" type="date"></div>
+<div><label for="orr">Reason</label><input id="orr" placeholder="e.g. Inter-college symposium"></div></div>
+<div style="margin-top:14px"><button class="btn" id="odBtn">Submit request</button></div></div>
+<div class="scroll"><table><thead><tr><th>Student</th><th>Course</th><th>Date</th><th>Reason</th><th>Status</th><th></th></tr></thead><tbody id="ob"></tbody></table></div>
+</section>
+
+<section id="crs" class="hide">
+<div class="scroll"><table><thead><tr><th>Course</th><th class="n">Students</th><th class="n">Classes held</th><th>Course attendance</th><th class="n">Students in shortage</th></tr></thead><tbody id="cb"></tbody></table></div>
+</section>
+</main>
+<footer>Demo app: data is stored in this browser only. See the chat for a cloud deployment layout.</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+let st=[
+{reg:"SIM2601",name:"Aarthi Raman",course:"Data Structures",p:18,a:1,od:1},
+{reg:"SIM2602",name:"Karthik Subramani",course:"Data Structures",p:14,a:5,od:1},
+{reg:"SIM2603",name:"Meena Lakshmi",course:"Database Systems",p:19,a:1,od:0},
+{reg:"SIM2604",name:"Vignesh Kumar",course:"Database Systems",p:11,a:8,od:1},
+{reg:"SIM2605",name:"Farah Sheikh",course:"Operating Systems",p:20,a:0,od:0}];
+let ods=[{id:1,reg:"SIM2604",date:"2026-09-22",reason:"Inter-college symposium",status:"Pending"}];
+let sess=[];
+try{const a=localStorage.getItem("at_st"),b=localStorage.getItem("at_od"),c=localStorage.getItem("at_se");if(a)st=JSON.parse(a);if(b)ods=JSON.parse(b);if(c)sess=JSON.parse(c)}catch(e){}
+const save=()=>{try{localStorage.setItem("at_st",JSON.stringify(st));localStorage.setItem("at_od",JSON.stringify(ods));localStorage.setItem("at_se",JSON.stringify(sess))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const say=(t,bad)=>{$("msg").textContent=t;$("msg").className=bad?"bad":"ok"};
+const total=s=>s.p+s.a+s.od, pct=s=>total(s)?(s.p+s.od)/total(s)*100:0;
+const grade=x=>x>=95?"O":x>=90?"A+":x>=85?"A":x>=75?"B":x>=65?"C":"F";
+const cls=x=>x>=75?"ok":x>=65?"warn":"bad";
+const courses=()=>[...new Set(st.map(s=>s.course))].sort();
+const meter=x=>`<span class="${cls(x)}"><span class="meter"><i style="width:${Math.min(100,x)}%"></i></span>${x.toFixed(1)}%</span>`;
+$("md").value=$("odt").value=new Date().toISOString().slice(0,10);
+
+function render(){
+const n=st.length,avg=n?st.reduce((a,s)=>a+pct(s),0)/n:0,sh=st.filter(s=>total(s)&&pct(s)<75).length;
+$("stats").innerHTML=[["Students",n],["Average attendance",avg.toFixed(1)+"%"],["In shortage",sh],["Pending OD",ods.filter(o=>o.status==="Pending").length]].map(([k,v])=>`<div class="stat"><b>${v}</b>${k}</div>`).join("");
+$("cl").innerHTML=courses().map(c=>`<option>${esc(c)}</option>`).join("");
+$("tb").innerHTML=n?st.map(s=>{const x=pct(s),none=!total(s);return `<tr><td class="nm">${esc(s.name)}</td><td>${esc(s.reg)}</td><td>${esc(s.course)}</td>
+<td class="n">${s.p}</td><td class="n">${s.a}</td><td class="n">${s.od}</td><td class="n">${total(s)}</td>
+<td>${none?'<span class="mut">No classes yet</span>':meter(x)}</td><td>${none?"–":grade(x)}</td>
+<td>${none?"–":`<span class="pill ${x>=75?"ok":"bad"}">${x>=75?"Eligible":"Shortage"}</span>`}</td></tr>`}).join(""):'<tr><td colspan="10" class="mut">No students yet. Add a student above.</td></tr>';
+$("os").innerHTML=st.map(s=>`<option value="${esc(s.reg)}">${esc(s.name)} (${esc(s.reg)})</option>`).join("");
+$("ob").innerHTML=ods.length?ods.map(o=>{const s=st.find(x=>x.reg===o.reg)||{name:o.reg,course:"-"};return `<tr><td class="nm">${esc(s.name)}</td><td>${esc(s.course)}</td><td>${o.date}</td><td>${esc(o.reason)}</td>
+<td><span class="pill ${o.status==="Approved"?"ok":o.status==="Rejected"?"bad":"warn"}">${o.status}</span></td>
+<td>${o.status==="Pending"?`<button class="btn sm" data-a="${o.id}">Approve</button> <button class="btn ghost sm" data-r="${o.id}">Reject</button>`:""}</td></tr>`}).join(""):'<tr><td colspan="6" class="mut">No OD requests yet.</td></tr>';
+document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>decide(+b.dataset.a,true));
+document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>decide(+b.dataset.r,false));
+$("cb").innerHTML=courses().map(c=>{const l=st.filter(s=>s.course===c),held=Math.max(...l.map(total)),a=l.reduce((t,s)=>t+pct(s),0)/l.length;
+return `<tr><td class="nm">${esc(c)}</td><td class="n">${l.length}</td><td class="n">${held}</td><td>${held?meter(a):'<span class="mut">No classes yet</span>'}</td><td class="n">${l.filter(s=>total(s)&&pct(s)<75).length}</td></tr>`}).join("")||'<tr><td colspan="5" class="mut">No courses yet.</td></tr>';
+const keep=$("mc").value;$("mc").innerHTML=courses().map(c=>`<option>${esc(c)}</option>`).join("");if(keep)$("mc").value=keep;
+renderMark();}
+
+function renderMark(){
+const l=st.filter(s=>s.course===$("mc").value);
+$("ml").innerHTML=l.length?l.map((s,i)=>`<div class="mk" style="padding:6px 0;border-bottom:1px solid var(--line)"><b style="display:inline-block;min-width:200px">${esc(s.name)}</b>
+<label><input type="radio" name="m${i}" value="p" checked>Present</label><label><input type="radio" name="m${i}" value="a">Absent</label></div>`).join(""):'<p class="mut">Add students to a course to mark attendance.</p>';}
+$("mc").onchange=renderMark;
+
+$("saveMark").onclick=()=>{
+const c=$("mc").value,d=$("md").value,l=st.filter(s=>s.course===c);
+if(!c||!d||!l.length){say("Pick a course with students and a class date.",true);return}
+if(sess.some(x=>x.c===c&&x.d===d)){say("Attendance for this course and date is already saved.",true);return}
+l.forEach((s,i)=>{const v=document.querySelector(`input[name=m${i}]:checked`).value;v==="p"?s.p++:s.a++});
+sess.push({c,d});save();say(`Saved attendance for ${c} on ${d}.`);render();};
+
+$("odBtn").onclick=()=>{
+const reg=$("os").value,date=$("odt").value,reason=$("orr").value.trim();
+if(!reg||!date||!reason){say("Choose a student, a date and give a reason.",true);return}
+ods.unshift({id:Date.now(),reg,date,reason,status:"Pending"});$("orr").value="";save();say("OD request submitted for approval.");render();};
+function decide(id,yes){
+const o=ods.find(x=>x.id===id),s=st.find(x=>x.reg===o.reg);
+o.status=yes?"Approved":"Rejected";
+if(yes&&s){if(s.a>0){s.a--;s.od++;say("Approved. One absence is now counted as OD.")}else say("Approved, but there is no absence to convert for this student.")}else say("Request rejected.");
+save();render();}
+
+$("addBtn").onclick=()=>{
+const name=$("fn").value.trim(),reg=$("fr").value.trim(),course=$("fc").value.trim();
+if(!name||!reg||!course){say("Enter the student's name, reg no. and course.",true);return}
+if(st.some(s=>s.reg===reg)){say("That reg no. already exists.",true);return}
+st.push({reg,name,course,p:0,a:0,od:0});["fn","fr","fc"].forEach(k=>$(k).value="");save();say(`Added ${name} to ${course}.`);render();};
+
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
+["reg","mark","od","crs"].forEach(v=>$(v).classList.toggle("hide",v!==b.dataset.v));say("")});
+render();
+</script>
+</body>
+</html>

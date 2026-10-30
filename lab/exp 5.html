@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MarkDesk – Mark Sheet Processing</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:wght@500;700&family=Work+Sans:wght@400;600&display=swap">
+<style>
+:root{--bg:#eef2ee;--card:#fff;--ink:#17261d;--mut:#5c6e62;--line:#d3ddd5;--acc:#1f5e3b;--accink:#fff;--hi:#e9f3ec;--ok:#1b7f4b;--bad:#b4402c;--warn:#a06a00;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f1812;--card:#17241b;--ink:#e8f1ea;--mut:#9fb3a5;--line:#2c3f32;--acc:#6ccf95;--accink:#0f1812;--hi:#1d3024;--ok:#6ccf95;--bad:#f2917e;--warn:#e8b94d}}
+:root[data-theme="dark"]{--bg:#0f1812;--card:#17241b;--ink:#e8f1ea;--mut:#9fb3a5;--line:#2c3f32;--acc:#6ccf95;--accink:#0f1812;--hi:#1d3024;--ok:#6ccf95;--bad:#f2917e;--warn:#e8b94d}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Work Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:Lora,Georgia,serif;margin:0}
+header{background:#1f5e3b;color:#fff;padding:26px 20px}
+.wrap{max-width:1100px;margin:0 auto}
+header h1{font-size:clamp(26px,4.5vw,38px)}
+header p{margin:4px 0 0;opacity:.85}
+main{padding:20px 16px 40px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 16px;min-width:130px}
+.stat b{font:700 22px Lora,serif;display:block}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+.panel h2{font-size:20px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.grid .w2{grid-column:span 2}
+label{display:block;font-size:14px;color:var(--mut);margin-bottom:4px}
+input{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{background:var(--acc);color:var(--accink);border:0;border-radius:8px;padding:10px 16px;font:600 15px "Work Sans",sans-serif;cursor:pointer}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.sm{padding:5px 10px;font-size:13px}
+.sub{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}.sub div{flex:1;min-width:240px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:900px;font-size:15px}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:600;color:var(--mut);font-size:14px;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.n{font-variant-numeric:tabular-nums;text-align:right}th.n{text-align:right}
+td.nm{font:700 15px Lora,serif}
+.f{color:var(--bad);font-weight:600}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid currentColor}
+.rk{display:inline-block;min-width:28px;text-align:center;font:700 15px Lora,serif;background:var(--hi);border-radius:6px;padding:1px 6px}
+.bar{display:flex;gap:10px;margin-bottom:12px}.bar input{max-width:360px}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);max-width:460px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.ms{width:100%;border-collapse:collapse;min-width:0;margin:12px 0}.ms td,.ms th{padding:6px 8px;white-space:normal}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+#msg{min-height:24px;font-weight:600;margin:0 0 10px}.ok{color:var(--ok)}.bad{color:var(--bad)}.mut{color:var(--mut)}
+footer{text-align:center;color:var(--mut);font-size:14px;padding:0 16px 32px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>MarkDesk</h1>
+<p>Enter marks once. Totals, averages, ranks and performance are worked out for you.</p>
+</div></header>
+
+<main class="wrap">
+<div class="stats" id="stats"></div>
+<p id="msg" role="status"></p>
+
+<section class="panel">
+<h2>Subjects</h2>
+<div class="sub">
+<div><label for="subs">Subject names, separated by commas (each out of 100)</label><input id="subs"></div>
+<button class="btn ghost" id="applySubs">Update subjects</button>
+</div>
+</section>
+
+<section class="panel">
+<h2>Add a student</h2>
+<div class="grid" id="addForm"></div>
+<div style="margin-top:14px"><button class="btn" id="addBtn">Save marks</button></div>
+</section>
+
+<section>
+<div class="bar"><input id="q" type="search" placeholder="Search by name or reg no." aria-label="Search students"></div>
+<div class="scroll"><table><thead id="th"></thead><tbody id="tb"></tbody></table></div>
+<p class="mut">Pass needs at least 40 in every subject. Performance bands: 75%+ Distinction, 60–74% First class, 50–59% Second class, 40–49% Pass class.</p>
+</section>
+</main>
+<footer>Demo app: data is stored in this browser only. See the chat for a cloud deployment layout.</footer>
+
+<dialog id="dlg"><div id="dbody"></div><div class="row"><button class="btn" id="close">Close</button></div></dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+let subjects=["Mathematics","Physics","Chemistry","Programming","English"];
+let students=[
+{reg:"SIM2026001",name:"Aarthi Raman",m:[92,88,85,95,81]},
+{reg:"SIM2026002",name:"Karthik Subramani",m:[78,72,69,84,75]},
+{reg:"SIM2026003",name:"Meena Lakshmi",m:[64,58,61,70,66]},
+{reg:"SIM2026004",name:"Vignesh Kumar",m:[45,52,38,60,55]},
+{reg:"SIM2026005",name:"Farah Sheikh",m:[85,91,79,88,90]}];
+try{const s=localStorage.getItem("md_subjects"),t=localStorage.getItem("md_students");if(s)subjects=JSON.parse(s);if(t)students=JSON.parse(t)}catch(e){}
+const save=()=>{try{localStorage.setItem("md_subjects",JSON.stringify(subjects));localStorage.setItem("md_students",JSON.stringify(students))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const say=(t,bad)=>{$("msg").textContent=t;$("msg").className=bad?"bad":"ok"};
+
+function calc(s){
+const m=subjects.map((_,i)=>+s.m[i]||0),total=m.reduce((a,b)=>a+b,0),avg=m.length?total/m.length:0,pct=avg; // each subject is out of 100, so percentage equals average
+const pass=m.every(x=>x>=40);
+let perf="Needs improvement";
+if(pass)perf=pct>=75?"Distinction":pct>=60?"First class":pct>=50?"Second class":"Pass class";
+return{...s,m,total,avg,pct,pass,perf};}
+function all(){
+const l=students.map(calc).sort((a,b)=>b.total-a.total);
+l.forEach((s,i)=>{s.rank=i&&s.total===l[i-1].total?l[i-1].rank:i+1});return l;}
+
+function renderForm(){
+$("addForm").innerHTML=`<div class="w2"><label for="fn">Name of the student</label><input id="fn"></div>
+<div><label for="fr">Reg no.</label><input id="fr"></div>`+
+subjects.map((s,i)=>`<div><label for="mk${i}">${esc(s)}</label><input id="mk${i}" type="number" min="0" max="100"></div>`).join("");}
+function render(){
+const q=$("q").value.toLowerCase(),l=all(),f=l.filter(s=>(s.name+s.reg).toLowerCase().includes(q));
+const n=l.length,passN=l.filter(s=>s.pass).length;
+$("stats").innerHTML=[["Students",n],["Class average",n?(l.reduce((a,s)=>a+s.avg,0)/n).toFixed(1)+"%":"–"],["Pass rate",n?Math.round(passN/n*100)+"%":"–"],["Topper",n?esc(l[0].name):"–"]]
+.map(([k,v])=>`<div class="stat"><b>${v}</b>${k}</div>`).join("");
+$("th").innerHTML=`<tr><th>Rank</th><th>Reg no.</th><th>Name</th>${subjects.map(s=>`<th class="n">${esc(s)}</th>`).join("")}<th class="n">Total</th><th class="n">Average</th><th class="n">Percentage</th><th>Result</th><th>Overall performance</th><th></th></tr>`;
+$("tb").innerHTML=f.length?f.map(s=>`<tr><td><span class="rk">${s.rank}</span></td><td>${esc(s.reg)}</td><td class="nm">${esc(s.name)}</td>
+${s.m.map(x=>`<td class="n ${x<40?"f":""}">${x}</td>`).join("")}
+<td class="n">${s.total}/${subjects.length*100}</td><td class="n">${s.avg.toFixed(1)}</td><td class="n">${s.pct.toFixed(1)}%</td>
+<td><span class="pill ${s.pass?"ok":"bad"}">${s.pass?"Pass":"Fail"}</span></td><td>${s.perf}</td>
+<td><button class="btn ghost sm" data-v="${esc(s.reg)}">View</button> <button class="btn ghost sm" data-d="${esc(s.reg)}">Delete</button></td></tr>`).join("")
+:`<tr><td colspan="${subjects.length+10}" class="mut">No students found. Add a student above to see results.</td></tr>`;
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>view(b.dataset.v));
+document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{students=students.filter(s=>s.reg!==b.dataset.d);save();say("Student deleted.");render()});}
+
+function view(reg){
+const s=all().find(x=>x.reg===reg);if(!s)return;
+$("dbody").innerHTML=`<h3>${esc(s.name)}</h3><div class="mut">Reg no. ${esc(s.reg)} · Rank ${s.rank} of ${students.length}</div>
+<table class="ms"><thead><tr><th>Subject</th><th class="n">Marks</th><th>Grade</th></tr></thead><tbody>
+${subjects.map((n,i)=>{const x=s.m[i];return `<tr><td>${esc(n)}</td><td class="n ${x<40?"f":""}">${x}/100</td><td>${x>=90?"O":x>=80?"A+":x>=70?"A":x>=60?"B":x>=50?"C":x>=40?"D":"F"}</td></tr>`}).join("")}
+</tbody></table>
+<p><b>Total:</b> ${s.total}/${subjects.length*100} · <b>Average:</b> ${s.avg.toFixed(1)} · <b>Percentage:</b> ${s.pct.toFixed(1)}%</p>
+<p><b>Result:</b> <span class="${s.pass?"ok":"bad"}">${s.pass?"Pass":"Fail"}</span> · <b>Overall performance:</b> ${s.perf}</p>`;
+$("dlg").showModal();}
+$("close").onclick=()=>$("dlg").close();
+
+$("addBtn").onclick=()=>{
+const name=$("fn").value.trim(),reg=$("fr").value.trim(),m=subjects.map((_,i)=>$("mk"+i).value);
+if(!name||!reg){say("Enter the student's name and reg no.",true);return}
+if(students.some(s=>s.reg===reg)){say("That reg no. already exists. Delete it first or use a different one.",true);return}
+if(m.some(x=>x===""||+x<0||+x>100)){say("Enter marks between 0 and 100 for every subject.",true);return}
+students.push({reg,name,m:m.map(Number)});save();renderForm();say(`Saved marks for ${name}.`);render();};
+$("applySubs").onclick=()=>{
+const l=$("subs").value.split(",").map(s=>s.trim()).filter(Boolean);
+if(l.length<1||l.length>10){say("Enter between 1 and 10 subject names.",true);return}
+subjects=l;students.forEach(s=>{s.m=l.map((_,i)=>+s.m[i]||0)});save();renderForm();say("Subjects updated. Existing students keep marks by position; missing ones show 0.");render();};
+$("q").oninput=render;
+$("subs").value=subjects.join(", ");renderForm();render();
+</script>
+</body>
+</html>

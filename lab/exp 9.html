@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIMATS Hospital – Information System</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;700&family=Hind:wght@400;600&display=swap">
+<style>
+:root{--bg:#f1f2f5;--card:#fff;--ink:#1d2433;--mut:#626b7d;--line:#dcdfe7;--acc:#b0233b;--accink:#fff;--hi:#fbe9ec;--ok:#1b7f4b;--bad:#b0233b;--warn:#9a6700;--info:#1f5fa8;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12151d;--card:#1b202c;--ink:#eceff6;--mut:#a5adc0;--line:#2e3546;--acc:#ee7d90;--accink:#12151d;--hi:#33202a;--ok:#6ccf95;--bad:#f2917e;--warn:#e8b94d;--info:#7db4f2}}
+:root[data-theme="dark"]{--bg:#12151d;--card:#1b202c;--ink:#eceff6;--mut:#a5adc0;--line:#2e3546;--acc:#ee7d90;--accink:#12151d;--hi:#33202a;--ok:#6ccf95;--bad:#f2917e;--warn:#e8b94d;--info:#7db4f2}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Hind,system-ui,sans-serif}
+h1,h2,h3{font-family:Outfit,system-ui,sans-serif;margin:0}
+header{background:#1d2433;color:#fff;padding:26px 20px;border-bottom:4px solid #b0233b}
+.wrap{max-width:1140px;margin:0 auto}
+header h1{font-size:clamp(26px,4.5vw,38px);font-weight:700}
+header p{margin:4px 0 0;opacity:.85}
+main{padding:20px 16px 40px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 16px;min-width:130px}
+.stat b{font:700 22px Outfit,sans-serif;display:block}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mut);padding:10px 16px;font:600 15px Hind,sans-serif;cursor:pointer}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--acc)}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+.panel h2{font-size:18px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.w2{grid-column:span 2}
+label{display:block;font-size:14px;color:var(--mut);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:72px;resize:vertical}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{background:var(--acc);color:var(--accink);border:0;border-radius:8px;padding:10px 16px;font:600 15px Hind,sans-serif;cursor:pointer}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.sm{padding:5px 10px;font-size:13px}
+.bar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}.bar input{flex:2;min-width:200px}.bar select{flex:1;min-width:150px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:1050px;font-size:15px}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--mut);font-size:14px;background:var(--bg);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.nm{font-weight:600}
+.id{color:var(--mut);font-size:13px}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid currentColor;white-space:nowrap}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.info{color:var(--info)}.mut{color:var(--mut)}
+.hide{display:none}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);max-width:540px;width:calc(100% - 32px);max-height:90vh}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.kv{display:grid;grid-template-columns:130px 1fr;gap:4px 12px;margin:12px 0;font-size:15px}.kv span:nth-child(odd){color:var(--mut)}
+.note{background:var(--hi);border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:14px}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+#msg{min-height:24px;font-weight:600;margin:0 0 10px}
+footer{text-align:center;color:var(--mut);font-size:14px;padding:0 16px 32px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>SIMATS Hospital</h1>
+<p>Register patients, assign doctors and track admissions and discharges.</p>
+</div></header>
+
+<main class="wrap">
+<div class="stats" id="stats"></div>
+<div class="tabs" role="tablist">
+<button role="tab" aria-selected="true" data-v="pat">Patients</button>
+<button role="tab" aria-selected="false" data-v="doc">Doctors</button>
+</div>
+<p id="msg" role="status"></p>
+
+<section id="pat">
+<div class="panel"><h2>Register a patient</h2>
+<div class="grid">
+<div class="w2"><label for="fn">Patient name</label><input id="fn" autocomplete="off"></div>
+<div><label for="fa">Age</label><input id="fa" type="number" min="0" max="120"></div>
+<div><label for="fg">Gender</label><select id="fg"><option>Female</option><option>Male</option><option>Other</option></select></div>
+<div class="w2"><label for="fd">Address</label><input id="fd"></div>
+<div><label for="fp">Phone</label><input id="fp" type="tel" placeholder="10 digits"></div>
+<div><label for="fe">Email</label><input id="fe" type="email"></div>
+<div><label for="fan">Attender name</label><input id="fan"></div>
+<div><label for="fap">Attender phone</label><input id="fap" type="tel" placeholder="10 digits"></div>
+<div class="w2"><label for="fdi">Disease / complaint</label><input id="fdi"></div>
+<div><label for="fdp">Department</label><select id="fdp"></select></div>
+<div><label for="fdo">Doctor name</label><select id="fdo"></select></div>
+<div><label for="ft">Visit type</label><select id="ft"><option value="OP">Outpatient (OP)</option><option value="IP">Admission (IP)</option></select></div>
+</div>
+<div style="margin-top:14px"><button class="btn" id="addBtn">Register patient</button></div></div>
+
+<div class="bar">
+<input id="q" type="search" placeholder="Search by name, phone, ID or disease" aria-label="Search patients">
+<select id="fst" aria-label="Filter by status"><option value="">All statuses</option><option>Outpatient</option><option>Admitted</option><option>Discharged</option></select>
+<select id="fdc" aria-label="Filter by doctor"></select>
+</div>
+<div class="scroll"><table>
+<thead><tr><th>Patient</th><th>Age</th><th>Address</th><th>Phone / email</th><th>Attender</th><th>Doctor</th><th>Disease</th><th>Registered</th><th>Status</th><th></th></tr></thead>
+<tbody id="tb"></tbody></table></div>
+</section>
+
+<section id="doc" class="hide">
+<div class="scroll"><table style="min-width:600px"><thead><tr><th>Doctor</th><th>Department</th><th>Current patients</th><th>Admitted</th><th>Total seen</th></tr></thead><tbody id="db"></tbody></table></div>
+</section>
+</main>
+<footer>Demo app: data is stored in this browser only. Patient data is sensitive, so a real system needs proper access control. See the chat for a cloud deployment layout.</footer>
+
+<dialog id="dlg"><div id="dbody"></div></dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+const DOCS=[
+{n:"Dr. Rajalakshmi S",d:"General Medicine"},{n:"Dr. Suresh Babu",d:"Cardiology"},{n:"Dr. Anitha Roy",d:"Paediatrics"},
+{n:"Dr. Karthikeyan M",d:"Orthopaedics"},{n:"Dr. Fathima Begum",d:"Gynaecology"}];
+const DEPTS=[...new Set(DOCS.map(d=>d.d))];
+let P=[
+{id:"P-0001",name:"Murugan Selvam",age:58,g:"Male",addr:"22 Bazaar Street, Sriperumbudur",phone:"9876510001",email:"murugan@example.com",att:"Kala Murugan",attP:"9876510002",doc:"Dr. Suresh Babu",dis:"Chest pain, hypertension",type:"IP",date:"2026-10-02",status:"Admitted",notes:[{d:"2026-10-02",t:"Admitted for observation. ECG advised."}]},
+{id:"P-0002",name:"Baby Harini",age:3,g:"Female",addr:"7 Nehru Nagar, Kanchipuram",phone:"9876510003",email:"harini.family@example.com",att:"Revathi",attP:"9876510004",doc:"Dr. Anitha Roy",dis:"Viral fever",type:"OP",date:"2026-10-04",status:"Outpatient",notes:[]},
+{id:"P-0003",name:"Abdul Rahman",age:41,g:"Male",addr:"15 Mosque Street, Chennai",phone:"9876510005",email:"abdul.r@example.com",att:"Shabana",attP:"9876510006",doc:"Dr. Karthikeyan M",dis:"Fracture, right forearm",type:"IP",date:"2026-09-28",status:"Discharged",notes:[{d:"2026-09-30",t:"Plaster applied. Review in 2 weeks."}]}];
+try{const s=localStorage.getItem("hs_p");if(s)P=JSON.parse(s)}catch(e){}
+const save=()=>{try{localStorage.setItem("hs_p",JSON.stringify(P))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const say=(t,bad)=>{$("msg").textContent=t;$("msg").className=bad?"bad":"ok"};
+const sCls=s=>s==="Admitted"?"bad":s==="Outpatient"?"info":"ok";
+$("fdp").innerHTML=DEPTS.map(d=>`<option>${d}</option>`).join("");
+$("fdc").innerHTML='<option value="">All doctors</option>'+DOCS.map(d=>`<option>${d.n}</option>`).join("");
+function fillDocs(){$("fdo").innerHTML=DOCS.filter(d=>d.d===$("fdp").value).map(d=>`<option>${d.n}</option>`).join("")}
+$("fdp").onchange=fillDocs;fillDocs();
+
+function render(){
+const q=$("q").value.toLowerCase(),st=$("fst").value,dc=$("fdc").value;
+const f=P.filter(p=>(p.name+p.phone+p.id+p.dis).toLowerCase().includes(q)&&(!st||p.status===st)&&(!dc||p.doc===dc));
+$("stats").innerHTML=[["Patients",P.length],["Admitted now",P.filter(p=>p.status==="Admitted").length],["Outpatients",P.filter(p=>p.status==="Outpatient").length],["Discharged",P.filter(p=>p.status==="Discharged").length],["Doctors",DOCS.length]].map(([k,v])=>`<div class="stat"><b>${v}</b>${k}</div>`).join("");
+$("tb").innerHTML=f.length?f.map(p=>`<tr><td class="nm">${esc(p.name)}<div class="id">${p.id} · ${esc(p.g)}</div></td><td>${p.age}</td><td>${esc(p.addr)}</td>
+<td>${esc(p.phone)}<div class="id">${esc(p.email)}</div></td><td>${esc(p.att)}<div class="id">${esc(p.attP)}</div></td>
+<td>${esc(p.doc)}</td><td>${esc(p.dis)}</td><td>${p.date}<div class="id">${p.type==="IP"?"Admission":"Outpatient"}</div></td>
+<td><span class="pill ${sCls(p.status)}">${p.status}</span></td>
+<td style="white-space:nowrap"><button class="btn sm" data-v="${p.id}">Open</button> <button class="btn ghost sm" data-d="${p.id}">Delete</button></td></tr>`).join(""):'<tr><td colspan="10" class="mut">No patients match. Register a patient above or clear the filters.</td></tr>';
+document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>open(b.dataset.v));
+document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{P=P.filter(p=>p.id!==b.dataset.d);save();say("Patient record deleted.");render()});
+$("db").innerHTML=DOCS.map(d=>{const l=P.filter(p=>p.doc===d.n);return `<tr><td class="nm">${d.n}</td><td>${d.d}</td><td>${l.filter(p=>p.status!=="Discharged").length}</td><td>${l.filter(p=>p.status==="Admitted").length}</td><td>${l.length}</td></tr>`}).join("");}
+
+function open(id){
+const p=P.find(x=>x.id===id);if(!p)return;
+$("dbody").innerHTML=`<h3>${esc(p.name)}</h3><div class="id">${p.id} · registered ${p.date}</div>
+<div class="kv"><span>Age / gender</span><span>${p.age} · ${esc(p.g)}</span><span>Address</span><span>${esc(p.addr)}</span>
+<span>Phone</span><span>${esc(p.phone)}</span><span>Email</span><span>${esc(p.email)}</span>
+<span>Attender</span><span>${esc(p.att)} · ${esc(p.attP)}</span><span>Doctor</span><span>${esc(p.doc)}</span><span>Disease</span><span>${esc(p.dis)}</span></div>
+<h3 style="font-size:16px;margin:12px 0 6px">Visit notes</h3>
+${p.notes.length?p.notes.map(n=>`<div class="note"><b>${n.d}</b> · ${esc(n.t)}</div>`).join(""):'<p class="mut">No notes yet.</p>'}
+<label for="nt" style="margin-top:8px">Add a note</label><textarea id="nt"></textarea>
+<label for="ns" style="margin-top:8px">Status</label><select id="ns">${["Outpatient","Admitted","Discharged"].map(x=>`<option ${x===p.status?"selected":""}>${x}</option>`).join("")}</select>
+<div class="row"><button class="btn ghost" id="x">Close</button><button class="btn" id="sv">Save changes</button></div>`;
+$("x").onclick=()=>$("dlg").close();
+$("sv").onclick=()=>{const t=$("nt").value.trim();if(t)p.notes.push({d:new Date().toISOString().slice(0,10),t});p.status=$("ns").value;save();$("dlg").close();say(`Updated ${p.name}.`);render()};
+$("dlg").showModal();}
+
+$("addBtn").onclick=()=>{
+const v=k=>$(k).value.trim(),name=v("fn"),age=v("fa"),addr=v("fd"),phone=v("fp"),email=v("fe"),att=v("fan"),attP=v("fap"),dis=v("fdi"),doc=v("fdo");
+if(!name||age===""||!addr||!email||!att||!dis||!doc){say("Fill in every field to register a patient.",true);return}
+if(+age<0||+age>120){say("Enter an age between 0 and 120.",true);return}
+if(!/^\d{10}$/.test(phone)||!/^\d{10}$/.test(attP)){say("Patient and attender phone numbers must be 10 digits.",true);return}
+if(!/^\S+@\S+\.\S+$/.test(email)){say("Enter a valid email address.",true);return}
+const id="P-"+String(P.length+1+Math.floor(Math.random()*0)).padStart(4,"0");
+const uid=P.some(p=>p.id===id)?"P-"+Date.now().toString().slice(-5):id;
+const type=v("ft");
+P.unshift({id:uid,name,age:+age,g:v("fg"),addr,phone,email,att,attP,doc,dis,type,date:new Date().toISOString().slice(0,10),status:type==="IP"?"Admitted":"Outpatient",notes:[]});
+save();["fn","fa","fd","fp","fe","fan","fap","fdi"].forEach(k=>$(k).value="");say(`Registered ${name} as ${uid}, under ${doc}.`);render();};
+
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
+["pat","doc"].forEach(v=>$(v).classList.toggle("hide",v!==b.dataset.v));say("")});
+["q","fst","fdc"].forEach(k=>$(k).oninput=render);render();
+</script>
+</body>
+</html>

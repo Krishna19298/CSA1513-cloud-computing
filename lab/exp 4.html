@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SIMATS Library – Book Reservation</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:wght@500;700&family=Public+Sans:wght@400;600&display=swap">
+<style>
+:root{--bg:#f2f1f7;--card:#fff;--ink:#1b1a2e;--mut:#5f5e75;--line:#d9d8e6;--acc:#3b3a9e;--accink:#fff;--gold:#c99a2e;--ok:#1b7f4b;--bad:#b4442f;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#13121f;--card:#1d1c2e;--ink:#ecebf6;--mut:#a3a2bb;--line:#33324a;--acc:#8d8cf0;--accink:#13121f;--ok:#5fd493;--bad:#f08a76}}
+:root[data-theme="dark"]{--bg:#13121f;--card:#1d1c2e;--ink:#ecebf6;--mut:#a3a2bb;--line:#33324a;--acc:#8d8cf0;--accink:#13121f;--ok:#5fd493;--bad:#f08a76}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Public Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:Newsreader,Georgia,serif;margin:0}
+header{background:#1b1a2e;color:#fff;padding:26px 20px 24px;border-bottom:4px solid var(--gold)}
+.wrap{max-width:1040px;margin:0 auto}
+header h1{font-size:clamp(26px,4.5vw,38px);font-weight:700}
+header p{margin:4px 0 0;opacity:.8}
+main{padding:20px 16px 40px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 16px}
+.stat b{font:700 22px Newsreader,serif;display:block}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:16px}
+.tabs button{background:none;border:0;border-bottom:3px solid transparent;color:var(--mut);padding:10px 16px;font:600 15px "Public Sans",sans-serif;cursor:pointer}
+.tabs button[aria-selected=true]{color:var(--ink);border-color:var(--gold)}
+input,select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);font:inherit}
+label{display:block;font-size:14px;color:var(--mut);margin-bottom:4px}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.bar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}.bar input{flex:2;min-width:200px}.bar select{flex:1;min-width:140px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:860px;font-size:15px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--mut);font-size:14px;background:var(--bg)}
+tr:last-child td{border-bottom:0}
+td.t{font:700 16px Newsreader,serif}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid currentColor}
+.ok{color:var(--ok)}.bad{color:var(--bad)}
+.btn{background:var(--acc);color:var(--accink);border:0;border-radius:8px;padding:8px 14px;font:600 14px "Public Sans",sans-serif;cursor:pointer}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.form{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+.form .full{grid-column:1/-1}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);max-width:400px;width:calc(100% - 32px)}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.mut{color:var(--mut)}.hide{display:none}
+#msg{min-height:24px;margin:0 0 10px;font-weight:600}
+footer{text-align:center;color:var(--mut);font-size:14px;padding:0 16px 32px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>SIMATS Library</h1>
+<p>Search the catalogue, reserve a book and track returns.</p>
+</div></header>
+
+<main class="wrap">
+<div class="stats" id="stats"></div>
+<div class="tabs" role="tablist">
+<button role="tab" aria-selected="true" data-v="cat">Catalogue</button>
+<button role="tab" aria-selected="false" data-v="log">Issue &amp; return log</button>
+<button role="tab" aria-selected="false" data-v="add">Add a book</button>
+</div>
+<p id="msg" role="status"></p>
+
+<section id="cat">
+<div class="bar">
+<input id="q" type="search" placeholder="Search by title, author or publisher" aria-label="Search books">
+<select id="fs" aria-label="Filter by status"><option value="">All statuses</option><option value="a">Available</option><option value="t">Taken</option></select>
+</div>
+<div class="scroll"><table><thead><tr><th>Title</th><th>Author</th><th>Publication</th><th>Year</th><th>Edition</th><th>Copies</th><th>Rack no.</th><th>Status</th><th></th></tr></thead><tbody id="tb"></tbody></table></div>
+</section>
+
+<section id="log" class="hide">
+<div class="scroll"><table><thead><tr><th>Book</th><th>Member</th><th>Member ID</th><th>Issued</th><th>Due</th><th>Status</th><th></th></tr></thead><tbody id="lb"></tbody></table></div>
+</section>
+
+<section id="add" class="hide">
+<div class="form">
+<div class="full"><label for="aT">Title of the book</label><input id="aT"></div>
+<div><label for="aA">Author</label><input id="aA"></div>
+<div><label for="aP">Publication</label><input id="aP"></div>
+<div><label for="aY">Year</label><input id="aY" type="number" min="1900" max="2100" value="2024"></div>
+<div><label for="aE">Edition</label><input id="aE" placeholder="e.g. 3rd"></div>
+<div><label for="aC">No. of copies</label><input id="aC" type="number" min="1" value="1"></div>
+<div><label for="aR">Rack no.</label><input id="aR" placeholder="e.g. R-12"></div>
+<div class="full"><button class="btn" id="addBtn">Add to catalogue</button></div>
+</div>
+</section>
+</main>
+<footer>Demo app: data is stored in this browser only. See the chat for a cloud deployment layout.</footer>
+
+<dialog id="dlg"><h3>Reserve this book</h3>
+<p class="mut" id="sum"></p>
+<label for="nm">Student / staff name</label><input id="nm" autocomplete="name">
+<div style="height:10px"></div>
+<label for="mid">Register / staff ID</label><input id="mid">
+<p id="err" class="bad" style="margin:8px 0 0"></p>
+<div class="row"><button class="btn ghost" id="cancel">Cancel</button><button class="btn" id="ok">Confirm reservation</button></div>
+</dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+const seed=[
+{id:1,title:"Gray's Anatomy",author:"Susan Standring",pub:"Elsevier",year:2020,ed:"42nd",copies:4,rack:"M-03"},
+{id:2,title:"Guyton and Hall Textbook of Medical Physiology",author:"John E. Hall",pub:"Elsevier",year:2021,ed:"14th",copies:3,rack:"M-07"},
+{id:3,title:"Introduction to Algorithms",author:"Thomas H. Cormen",pub:"MIT Press",year:2022,ed:"4th",copies:2,rack:"E-12"},
+{id:4,title:"Operating System Concepts",author:"Abraham Silberschatz",pub:"Wiley",year:2018,ed:"10th",copies:3,rack:"E-15"},
+{id:5,title:"Harrison's Principles of Internal Medicine",author:"J. Larry Jameson",pub:"McGraw Hill",year:2022,ed:"21st",copies:2,rack:"M-10"},
+{id:6,title:"Engineering Mathematics",author:"B. S. Grewal",pub:"Khanna Publishers",year:2017,ed:"44th",copies:5,rack:"E-02"}];
+let books=seed,loans=[];
+try{const b=localStorage.getItem("sl_books"),l=localStorage.getItem("sl_loans");if(b)books=JSON.parse(b);if(l)loans=JSON.parse(l)}catch(e){}
+const save=()=>{try{localStorage.setItem("sl_books",JSON.stringify(books));localStorage.setItem("sl_loans",JSON.stringify(loans))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const taken=id=>loans.filter(l=>l.bid===id&&l.status==="Taken").length;
+const avail=b=>b.copies-taken(b.id);
+const say=(t,bad)=>{$("msg").textContent=t;$("msg").className=bad?"bad":"ok"};
+const fmt=d=>new Date(d).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+
+function renderCat(){
+const q=$("q").value.toLowerCase(),f=$("fs").value;
+const rows=books.filter(b=>(b.title+b.author+b.pub).toLowerCase().includes(q)&&(!f||(f==="a")===(avail(b)>0)));
+$("tb").innerHTML=rows.length?rows.map(b=>{const a=avail(b);return `<tr><td class="t">${esc(b.title)}</td><td>${esc(b.author)}</td><td>${esc(b.pub)}</td><td>${b.year}</td><td>${esc(b.ed)}</td>
+<td>${a} of ${b.copies} free</td><td>${esc(b.rack)}</td>
+<td><span class="pill ${a?"ok":"bad"}">${a?"Available":"Taken"}</span></td>
+<td><button class="btn" data-r="${b.id}" ${a?"":"disabled"}>Reserve</button></td></tr>`}).join(""):'<tr><td colspan="9" class="mut">No books match. Try a different title, author or publisher.</td></tr>';
+document.querySelectorAll("[data-r]").forEach(x=>x.onclick=()=>openRes(+x.dataset.r));
+}
+function renderLog(){
+$("lb").innerHTML=loans.length?loans.map((l,i)=>{const bk=books.find(b=>b.id===l.bid);const late=l.status==="Taken"&&new Date(l.due)<new Date();
+return `<tr><td class="t">${esc(bk?bk.title:"Removed book")}</td><td>${esc(l.name)}</td><td>${esc(l.mid)}</td><td>${fmt(l.issued)}</td><td>${fmt(l.due)}${late?' <span class="bad">overdue</span>':""}</td>
+<td><span class="pill ${l.status==="Taken"?"bad":"ok"}">${l.status}</span></td>
+<td>${l.status==="Taken"?`<button class="btn" data-ret="${i}">Mark returned</button>`:fmt(l.returned)}</td></tr>`}).join(""):'<tr><td colspan="7" class="mut">No reservations yet. Reserve a book from the catalogue.</td></tr>';
+document.querySelectorAll("[data-ret]").forEach(x=>x.onclick=()=>{const l=loans[+x.dataset.ret];l.status="Returned";l.returned=new Date().toISOString();save();say("Book marked as returned.");render()});
+}
+function renderStats(){
+const tc=books.reduce((s,b)=>s+b.copies,0),tk=loans.filter(l=>l.status==="Taken").length;
+$("stats").innerHTML=[["Titles",books.length],["Total copies",tc],["Taken",tk],["Available",tc-tk]].map(([k,v])=>`<div class="stat"><b>${v}</b>${k}</div>`).join("");}
+function render(){renderStats();renderCat();renderLog()}
+
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>{
+document.querySelectorAll(".tabs button").forEach(x=>x.setAttribute("aria-selected",x===b));
+["cat","log","add"].forEach(v=>$(v).classList.toggle("hide",v!==b.dataset.v));say("")});
+$("q").oninput=renderCat;$("fs").onchange=renderCat;
+
+let cur=null;
+function openRes(id){cur=books.find(b=>b.id===id);$("err").textContent="";$("sum").textContent=`${cur.title} · Rack ${cur.rack} · due in 14 days`;$("dlg").showModal()}
+$("cancel").onclick=()=>$("dlg").close();
+$("ok").onclick=()=>{
+const name=$("nm").value.trim(),mid=$("mid").value.trim();
+if(!name||!mid){$("err").textContent="Enter your name and ID to reserve.";return}
+if(avail(cur)<1){$("err").textContent="All copies were just taken.";return}
+const now=new Date(),due=new Date(Date.now()+14*864e5);
+loans.unshift({bid:cur.id,name,mid,issued:now.toISOString(),due:due.toISOString(),status:"Taken"});
+save();$("dlg").close();say(`Reserved "${cur.title}". Collect it from rack ${cur.rack}; due ${fmt(due)}.`);render();};
+
+$("addBtn").onclick=()=>{
+const v=k=>$(k).value.trim(),t=v("aT"),a=v("aA"),c=+v("aC");
+if(!t||!a||!v("aP")||!v("aE")||!v("aR")||c<1){say("Fill in every field, with at least 1 copy.",true);return}
+books.push({id:Date.now(),title:t,author:a,pub:v("aP"),year:+v("aY"),ed:v("aE"),copies:c,rack:v("aR")});
+save();["aT","aA","aP","aE","aR"].forEach(k=>$(k).value="");say(`Added "${t}" to the catalogue.`);render();};
+render();
+</script>
+</body>
+</html>

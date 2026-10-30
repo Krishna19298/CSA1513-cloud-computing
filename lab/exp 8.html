@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>PathFinder – Student Counselling</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@600;800&family=Nunito+Sans:wght@400;600&display=swap">
+<style>
+:root{--bg:#eef2fb;--card:#fff;--ink:#14213d;--mut:#5b6785;--line:#d8def0;--acc:#1f4fd8;--accink:#fff;--hi:#e8eefc;--ok:#1b7f4b;--bad:#b4302c;--warn:#9a6700;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1424;--card:#171f35;--ink:#e9eefb;--mut:#a3aed0;--line:#2b3656;--acc:#7da2ff;--accink:#0e1424;--hi:#1f2a4a;--ok:#6ccf95;--bad:#f2917e;--warn:#e8b94d}}
+:root[data-theme="dark"]{--bg:#0e1424;--card:#171f35;--ink:#e9eefb;--mut:#a3aed0;--line:#2b3656;--acc:#7da2ff;--accink:#0e1424;--hi:#1f2a4a;--ok:#6ccf95;--bad:#f2917e;--warn:#e8b94d}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Nunito Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:Manrope,system-ui,sans-serif;margin:0}
+header{background:#14213d;color:#fff;padding:26px 20px;border-bottom:4px solid #7da2ff}
+.wrap{max-width:1120px;margin:0 auto}
+header h1{font-size:clamp(26px,4.5vw,38px);font-weight:800}
+header p{margin:4px 0 0;opacity:.85}
+main{padding:20px 16px 40px}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 16px;min-width:130px}
+.stat b{font:800 22px Manrope,sans-serif;display:block}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:18px}
+.panel h2{font-size:18px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.w2{grid-column:span 2}
+label{display:block;font-size:14px;color:var(--mut);margin-bottom:4px}
+input,select,textarea{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+textarea{min-height:80px;resize:vertical}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{background:var(--acc);color:var(--accink);border:0;border-radius:8px;padding:10px 16px;font:700 15px "Nunito Sans",sans-serif;cursor:pointer}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.sm{padding:5px 10px;font-size:13px}
+.bar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}.bar input{flex:2;min-width:200px}.bar select{flex:1;min-width:160px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}
+table{border-collapse:collapse;width:100%;min-width:1000px;font-size:15px}
+th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--mut);font-size:14px;background:var(--bg);white-space:nowrap}
+tr:last-child td{border-bottom:0}
+td.nm{font-weight:700}
+.pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:13px;font-weight:600;border:1px solid currentColor;white-space:nowrap}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.mut{color:var(--mut)}
+dialog{border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--ink);max-width:560px;width:calc(100% - 32px);max-height:90vh}
+dialog::backdrop{background:rgba(0,0,0,.5)}
+.rec{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.rec small{display:block;color:var(--mut)}
+.note{background:var(--hi);border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:14px}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+#msg{min-height:24px;font-weight:600;margin:0 0 10px}
+footer{text-align:center;color:var(--mut);font-size:14px;padding:0 16px 32px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>PathFinder</h1>
+<p>Record a student's profile, get course suggestions that fit, and keep counselling notes in one place.</p>
+</div></header>
+
+<main class="wrap">
+<div class="stats" id="stats"></div>
+<p id="msg" role="status"></p>
+
+<section class="panel">
+<h2>Add a student</h2>
+<div class="grid">
+<div class="w2"><label for="fn">Student name</label><input id="fn" autocomplete="off"></div>
+<div><label for="fa">Age</label><input id="fa" type="number" min="15" max="40"></div>
+<div><label for="fp">Phone</label><input id="fp" type="tel" placeholder="10 digits"></div>
+<div class="w2"><label for="fd">Address</label><input id="fd"></div>
+<div class="w2"><label for="fs">Subjects studied (comma separated)</label><input id="fs" placeholder="Maths, Physics, Chemistry"></div>
+<div><label for="fy">Year of passing</label><input id="fy" type="number" min="1990" max="2100" value="2026"></div>
+<div><label for="fm">Percentage of marks</label><input id="fm" type="number" min="0" max="100" step="0.1"></div>
+<div class="w2"><label for="fi">Domain interest</label><select id="fi"></select></div>
+</div>
+<div style="margin-top:14px"><button class="btn" id="addBtn">Save student</button></div>
+</section>
+
+<div class="bar">
+<input id="q" type="search" placeholder="Search by name, phone or subject" aria-label="Search students">
+<select id="fdom" aria-label="Filter by domain"></select>
+</div>
+<div class="scroll"><table>
+<thead><tr><th>Name</th><th>Age</th><th>Address</th><th>Phone</th><th>Subjects studied</th><th>Year</th><th>Marks</th><th>Domain interest</th><th>Status</th><th></th></tr></thead>
+<tbody id="tb"></tbody></table></div>
+</main>
+<footer>Demo app: data is stored in this browser only. Course suggestions are simple demo rules, not official eligibility. See the chat for a cloud deployment layout.</footer>
+
+<dialog id="dlg"><div id="dbody"></div></dialog>
+
+<script>
+const $=id=>document.getElementById(id);
+// Demo rules: course, minimum %, subject the course expects (empty = none)
+const DOM={
+"Engineering & Technology":[["B.E. Computer Science",75,"math"],["B.E. Electronics & Communication",65,"math"],["B.E. Mechanical",60,"math"],["B.Sc Computer Science",55,""]],
+"Medicine & Health":[["MBBS",85,"bio"],["B.Pharm",60,"chem"],["B.Sc Nursing",55,"bio"],["Bachelor of Physiotherapy",60,"bio"]],
+"Business & Management":[["BBA",55,""],["B.Com",50,""],["BBA Business Analytics",65,"math"]],
+"Arts & Humanities":[["BA English",50,""],["BA Psychology",55,""],["BA Journalism",50,""]],
+"Law":[["BA LLB (Hons)",60,""],["BBA LLB (Hons)",60,""]],
+"Design & Media":[["B.Des",55,""],["B.Sc Visual Communication",50,""]],
+"Science & Research":[["B.Sc Data Science",65,"math"],["B.Sc Physics",55,"phys"],["B.Sc Chemistry",55,"chem"],["B.Sc Mathematics",55,"math"]]};
+const SUBJ={math:"Mathematics",bio:"Biology",chem:"Chemistry",phys:"Physics"};
+const STATUS=["New","Counselled","Applied","Admitted"];
+let S=[
+{id:1,name:"Ananya Krishnan",age:17,addr:"12 Gandhi Street, Sriperumbudur",phone:"9876500001",subj:"Maths, Physics, Chemistry, Computer Science",yr:2026,pct:91.4,dom:"Engineering & Technology",status:"New",notes:[]},
+{id:2,name:"Rohit Menon",age:18,addr:"45 Lake View Road, Chennai",phone:"9876500002",subj:"Physics, Chemistry, Biology",yr:2026,pct:84.2,dom:"Medicine & Health",status:"Counselled",notes:[{d:"2026-09-30",t:"Strong in biology. Discussed NEET preparation and B.Pharm as a backup."}]},
+{id:3,name:"Sana Fathima",age:17,addr:"8 Market Lane, Kanchipuram",phone:"9876500003",subj:"Accountancy, Economics, Business Studies, Maths",yr:2026,pct:72.5,dom:"Business & Management",status:"New",notes:[]},
+{id:4,name:"Dev Patel",age:18,addr:"3 Temple Road, Tambaram",phone:"9876500004",subj:"History, Political Science, English",yr:2025,pct:66,dom:"Law",status:"Applied",notes:[]}];
+try{const s=localStorage.getItem("pf_s");if(s)S=JSON.parse(s)}catch(e){}
+const save=()=>{try{localStorage.setItem("pf_s",JSON.stringify(S))}catch(e){}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const say=(t,bad)=>{$("msg").textContent=t;$("msg").className=bad?"bad":"ok"};
+$("fi").innerHTML=Object.keys(DOM).map(d=>`<option>${d}</option>`).join("");
+$("fdom").innerHTML='<option value="">All domains</option>'+Object.keys(DOM).map(d=>`<option>${d}</option>`).join("");
+const sCls=s=>s==="Admitted"?"ok":s==="New"?"warn":"";
+
+function recs(s){
+return (DOM[s.dom]||[]).map(([c,min,sub])=>{
+const hasSub=!sub||s.subj.toLowerCase().includes(sub);
+let fit,cl,why;
+if(!hasSub){fit="Missing subject";cl="bad";why=`Usually expects ${SUBJ[sub]}`}
+else if(s.pct>=min+10){fit="Strong fit";cl="ok";why=`${s.pct}% is well above the usual ${min}%`}
+else if(s.pct>=min){fit="Eligible";cl="ok";why=`${s.pct}% meets the usual ${min}%`}
+else{fit="Below cut-off";cl="warn";why=`Usual cut-off is ${min}%`}
+return{c,fit,cl,why,rank:fit==="Strong fit"?0:fit==="Eligible"?1:fit==="Below cut-off"?2:3}}).sort((a,b)=>a.rank-b.rank);}
+
+function render(){
+const q=$("q").value.toLowerCase(),d=$("fdom").value;
+const f=S.filter(s=>(s.name+s.phone+s.subj).toLowerCase().includes(q)&&(!d||s.dom===d));
+$("stats").innerHTML=[["Students",S.length],["Average marks",S.length?(S.reduce((a,s)=>a+s.pct,0)/S.length).toFixed(1)+"%":"–"],["Yet to counsel",S.filter(s=>s.status==="New").length],["Admitted",S.filter(s=>s.status==="Admitted").length]].map(([k,v])=>`<div class="stat"><b>${v}</b>${k}</div>`).join("");
+$("tb").innerHTML=f.length?f.map(s=>`<tr><td class="nm">${esc(s.name)}</td><td>${s.age}</td><td>${esc(s.addr)}</td><td>${esc(s.phone)}</td><td>${esc(s.subj)}</td><td>${s.yr}</td><td>${s.pct}%</td><td>${esc(s.dom)}</td>
+<td><span class="pill ${sCls(s.status)}">${s.status}</span></td>
+<td style="white-space:nowrap"><button class="btn sm" data-c="${s.id}">Counsel</button> <button class="btn ghost sm" data-d="${s.id}">Delete</button></td></tr>`).join(""):'<tr><td colspan="10" class="mut">No students match. Add a student above or clear the filters.</td></tr>';
+document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>open(+b.dataset.c));
+document.querySelectorAll("[data-d]").forEach(b=>b.onclick=()=>{S=S.filter(s=>s.id!==+b.dataset.d);save();say("Student deleted.");render()});}
+
+function open(id){
+const s=S.find(x=>x.id===id);if(!s)return;
+$("dbody").innerHTML=`<h3>${esc(s.name)}</h3>
+<div class="mut">Age ${s.age} · ${esc(s.phone)} · ${esc(s.addr)}<br>Passed ${s.yr} with ${s.pct}% · Subjects: ${esc(s.subj)}<br>Interested in: <b>${esc(s.dom)}</b></div>
+<h3 style="font-size:16px;margin:16px 0 4px">Suggested courses</h3>
+${recs(s).map(r=>`<div class="rec"><div><b>${r.c}</b><small>${r.why}</small></div><span class="pill ${r.cl}" style="align-self:center">${r.fit}</span></div>`).join("")}
+<h3 style="font-size:16px;margin:16px 0 6px">Counselling notes</h3>
+${s.notes.length?s.notes.map(n=>`<div class="note"><b>${n.d}</b> · ${esc(n.t)}</div>`).join(""):'<p class="mut">No notes yet.</p>'}
+<label for="nt" style="margin-top:8px">Add a session note</label><textarea id="nt"></textarea>
+<label for="ns" style="margin-top:8px">Status</label><select id="ns">${STATUS.map(x=>`<option ${x===s.status?"selected":""}>${x}</option>`).join("")}</select>
+<div class="row"><button class="btn ghost" id="x">Close</button><button class="btn" id="sv">Save session</button></div>`;
+$("x").onclick=()=>$("dlg").close();
+$("sv").onclick=()=>{const t=$("nt").value.trim();if(t)s.notes.push({d:new Date().toISOString().slice(0,10),t});s.status=$("ns").value;save();$("dlg").close();say(`Saved session for ${s.name}.`);render()};
+$("dlg").showModal();}
+
+$("addBtn").onclick=()=>{
+const v=k=>$(k).value.trim(),name=v("fn"),age=+v("fa"),addr=v("fd"),phone=v("fp"),subj=v("fs"),yr=+v("fy"),pct=parseFloat(v("fm"));
+if(!name||!addr||!subj||!v("fa")||!v("fm")){say("Fill in every field to save a student.",true);return}
+if(age<15||age>40){say("Age should be between 15 and 40.",true);return}
+if(!/^\d{10}$/.test(phone)){say("Enter a 10-digit phone number.",true);return}
+if(isNaN(pct)||pct<0||pct>100){say("Percentage must be between 0 and 100.",true);return}
+if(yr<1990||yr>2100){say("Enter a valid year of passing.",true);return}
+S.unshift({id:Date.now(),name,age,addr,phone,subj,yr,pct,dom:$("fi").value,status:"New",notes:[]});save();
+["fn","fa","fd","fp","fs","fm"].forEach(k=>$(k).value="");say(`Saved ${name}. Open Counsel to see course suggestions.`);render();};
+$("q").oninput=render;$("fdom").onchange=render;render();
+</script>
+</body>
+</html>

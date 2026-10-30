@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>CRunner – Student Information in C</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+:root{--bg:#eceff4;--card:#fff;--ink:#1c2330;--mut:#5d6779;--line:#d5dae4;--acc:#e0a010;--accink:#1c2330;--ok:#1b7f4b;--bad:#b4302c;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10141b;--card:#1a212c;--ink:#e8ecf3;--mut:#9aa6b8;--line:#2c3544;--ok:#6ccf95;--bad:#f2917e}}
+:root[data-theme="dark"]{--bg:#10141b;--card:#1a212c;--ink:#e8ecf3;--mut:#9aa6b8;--line:#2c3544;--ok:#6ccf95;--bad:#f2917e}
+*{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Space Grotesk",system-ui,sans-serif}
+h1,h2,h3{margin:0;font-weight:700}
+header{background:#1c2330;color:#fff;padding:24px 20px;border-bottom:4px solid var(--acc)}
+.wrap{max-width:1180px;margin:0 auto}
+header h1{font-size:clamp(26px,4.5vw,36px)}header p{margin:4px 0 0;opacity:.85}
+main{padding:20px 16px 40px;display:grid;grid-template-columns:minmax(0,1fr);gap:18px}
+@media(min-width:960px){main{grid-template-columns:minmax(0,5fr) minmax(0,6fr)}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px}
+.panel h2{font-size:18px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}.w2{grid-column:span 2}
+label{display:block;font-size:14px;color:var(--mut);margin-bottom:3px}
+input,select{width:100%;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.btn{background:var(--acc);color:var(--accink);border:0;border-radius:8px;padding:10px 16px;font:700 15px "Space Grotesk",sans-serif;cursor:pointer}
+.ghost{background:transparent;color:var(--ink);border:1px solid var(--line);font-weight:500}
+.sm{padding:5px 10px;font-size:13px}
+.crs{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:6px;align-items:end;margin-bottom:6px}
+.crs.h{font-size:13px;color:var(--mut);margin-bottom:2px}
+.tabs{display:flex;gap:4px;margin-bottom:12px;flex-wrap:wrap}
+.tabs button{background:none;border:1px solid var(--line);color:var(--mut);padding:7px 14px;border-radius:8px;font:500 14px "Space Grotesk",sans-serif;cursor:pointer}
+.tabs button[aria-selected=true]{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+pre{margin:0;padding:14px;border-radius:10px;background:#0f1419;color:#d4e6d0;font:400 13px/1.5 "IBM Plex Mono",ui-monospace,monospace;overflow:auto;max-height:560px;white-space:pre}
+.run{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;margin-bottom:12px}.run div{min-width:210px}
+.hide{display:none}.mut{color:var(--mut);font-size:14px}
+#msg{min-height:24px;font-weight:600;margin:0 0 8px}.ok{color:var(--ok)}.bad{color:var(--bad)}
+footer{text-align:center;color:var(--mut);font-size:14px;padding:0 16px 32px}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+<h1>CRunner</h1>
+<p>Fill in the student template, generate a C program, and run it to print student reports.</p>
+</div></header>
+
+<main class="wrap">
+<section class="panel">
+<h2>Student template</h2>
+<div class="grid">
+<div class="w2"><label for="fn">Student name</label><input id="fn" value="Ananya Krishnan"></div>
+<div><label for="fr">Reg no.</label><input id="fr" value="SIM2026001"></div>
+<div class="w2"><label for="fa">Address</label><input id="fa" value="12 Gandhi Street, Sriperumbudur"></div>
+<div><label for="fp">Phone</label><input id="fp" value="9876500001" inputmode="numeric"></div>
+<div><label for="fg">Age</label><input id="fg" type="number" value="19" min="15" max="40"></div>
+<div><label for="fs">Semester</label><input id="fs" type="number" value="3" min="1" max="8"></div>
+</div>
+<h2 style="margin-top:16px">Courses, marks and attendance</h2>
+<div class="crs h"><span>Course</span><span>Marks /100</span><span>Classes held</span><span>Attended</span><span></span></div>
+<div id="cr"></div>
+<div style="margin-top:8px"><button class="btn ghost sm" id="addC">Add course</button></div>
+</section>
+
+<section class="panel">
+<p id="msg" role="status"></p>
+<div class="run">
+<div><label for="ch">Menu choice sent to the program</label>
+<select id="ch"><option value="1">1. Student information</option><option value="2">2. Attendance report</option><option value="3">3. Progress report</option><option value="4">4. Semester mark sheet</option></select></div>
+<button class="btn" id="run">Compile and run</button>
+</div>
+<div class="tabs" role="tablist">
+<button role="tab" aria-selected="true" data-v="out">Output</button>
+<button role="tab" aria-selected="false" data-v="code">C program</button>
+</div>
+<pre id="out" aria-label="Program output">Press "Compile and run" to see the output.</pre>
+<pre id="code" class="hide" aria-label="Generated C program"></pre>
+<p class="mut">The page generates this C program from your template. The output here is produced in your browser by the same logic, so it matches what the program prints. A cloud deployment would compile and run the code on a server instead.</p>
+</section>
+</main>
+<footer>Demo app. See the chat for how to run real C code safely on a cloud provider.</footer>
+
+<script>
+const $=id=>document.getElementById(id);
+//PURE-START
+const GR=m=>m>=90?"O":m>=80?"A+":m>=70?"A":m>=60?"B+":m>=55?"B":m>=50?"C":"F";
+const GP=m=>m>=90?10:m>=80?9:m>=70?8:m>=60?7:m>=55?6:m>=50?5:0;
+const RM=m=>m>=80?"Excellent":m>=60?"Good":m>=50?"Satisfactory":"Needs improvement";
+const clean=s=>String(s).replace(/[^\x20-\x7E]/g," ").trim().slice(0,60);
+// printf-style rounding: exact ties round to even, like C
+function ff(x,d){const s=x.toFixed(d+30),f=s.split(".")[1];
+if(f.slice(d)==="5"+"0".repeat(29)&&(+f[d-1])%2===0)return s.split(".")[0]+"."+f.slice(0,d);
+return x.toFixed(d)}
+const pr=(s,w)=>String(s).padEnd(w), pl=(s,w)=>String(s).padStart(w);
+function norm(s){return{name:clean(s.name),reg:clean(s.reg),addr:clean(s.addr),phone:clean(s.phone),age:s.age|0,sem:s.sem|0,
+c:s.c.map(c=>({name:clean(c.name),marks:c.marks|0,held:c.held|0,att:c.att|0}))}}
+const MENU="===== STUDENT INFORMATION SYSTEM =====\n1. Student information\n2. Attendance report\n3. Progress report\n4. Semester mark sheet\nEnter choice: ";
+function report(s,ch){
+const L=[],n=s.c.length,P=x=>L.push(x);
+const sum=s.c.reduce((a,c)=>a+c.marks,0),pts=s.c.reduce((a,c)=>a+GP(c.marks),0),fail=s.c.some(c=>c.marks<50);
+const pct=sum/n,gpa=pts/n;
+if(ch===1){P("===== STUDENT INFORMATION =====");P("Name       : "+s.name);P("Reg no     : "+s.reg);P("Address    : "+s.addr);P("Phone      : "+s.phone);
+P("Age        : "+s.age);P("Semester   : "+s.sem);P("Courses    : "+n+" registered");s.c.forEach((c,i)=>P("  "+(i+1)+". "+c.name))}
+else if(ch===2){P("===== ATTENDANCE REPORT =====");P("Student: "+s.name+" ("+s.reg+")");
+P(pr("Course",22)+" "+pl("Held",4)+" "+pl("Attended",8)+" "+pl("%",5)+"  Status");
+let h=0,a=0;
+s.c.forEach(c=>{const p=c.held?100*c.att/c.held:0;h+=c.held;a+=c.att;P(pr(c.name,22)+" "+pl(c.held,4)+" "+pl(c.att,8)+" "+pl(ff(p,1),5)+"  "+(p>=75?"OK":"SHORTAGE"))});
+P("Overall attendance: "+ff(h?100*a/h:0,1)+"%")}
+else if(ch===3){P("===== PROGRESS REPORT =====");P("Student: "+s.name+" ("+s.reg+")");
+P(pr("Course",22)+" "+pl("Marks",5)+" "+pr("Grade",5)+" Remark");
+s.c.forEach(c=>P(pr(c.name,22)+" "+pl(c.marks,5)+" "+pr(GR(c.marks),5)+" "+RM(c.marks)));
+P("Percentage : "+ff(pct,1)+"%");P("GPA        : "+ff(gpa,2));
+P("Overall     : "+(fail?"Needs improvement":pct>=75?"Distinction":pct>=60?"First class":"Second class"))}
+else{P("===== SEMESTER MARK SHEET =====");P("Semester: "+s.sem);P("Name    : "+s.name);P("Reg no  : "+s.reg);
+P(pr("Course",22)+" "+pl("Marks",5)+" "+pr("Grade",5)+" "+pl("Points",6)+"  Result");
+s.c.forEach(c=>P(pr(c.name,22)+" "+pl(c.marks,5)+" "+pr(GR(c.marks),5)+" "+pl(GP(c.marks),6)+"  "+(c.marks>=50?"PASS":"FAIL")));
+P("Total      : "+sum+" / "+n*100);P("Percentage : "+ff(pct,1)+"%");P("GPA        : "+ff(gpa,2));P("Result     : "+(fail?"FAIL":"PASS"))}
+return L.join("\n")+"\n"}
+const q=s=>'"'+s.replace(/\\/g,"\\\\").replace(/"/g,'\\"')+'"';
+function genC(s){
+const rows=s.c.map(c=>"    {"+q(c.name)+", "+c.marks+", "+c.held+", "+c.att+"}").join(",\n");
+return "#include <stdio.h>\n\nstruct Course  { char name[64]; int marks; int held; int attended; };\nstruct Student { char name[64], reg[64], address[64], phone[64]; int age, semester, n; struct Course c[6]; };\n\n"+
+"/* Student data from the template */\nstruct Student s = {\n    "+q(s.name)+", "+q(s.reg)+", "+q(s.addr)+", "+q(s.phone)+",\n    "+s.age+", "+s.sem+", "+s.c.length+",\n  {\n"+rows+"\n  }\n};\n"+String.raw`
+int points(int m){ return m>=90?10 : m>=80?9 : m>=70?8 : m>=60?7 : m>=55?6 : m>=50?5 : 0; }
+const char *grade(int m){ return m>=90?"O" : m>=80?"A+" : m>=70?"A" : m>=60?"B+" : m>=55?"B" : m>=50?"C" : "F"; }
+const char *remark(int m){ return m>=80?"Excellent" : m>=60?"Good" : m>=50?"Satisfactory" : "Needs improvement"; }
+
+void showInfo(void){
+    int i;
+    printf("===== STUDENT INFORMATION =====\n");
+    printf("Name       : %s\n", s.name);
+    printf("Reg no     : %s\n", s.reg);
+    printf("Address    : %s\n", s.address);
+    printf("Phone      : %s\n", s.phone);
+    printf("Age        : %d\n", s.age);
+    printf("Semester   : %d\n", s.semester);
+    printf("Courses    : %d registered\n", s.n);
+    for(i = 0; i < s.n; i++) printf("  %d. %s\n", i + 1, s.c[i].name);
+}
+
+void attendanceReport(void){
+    int i, h = 0, a = 0;
+    printf("===== ATTENDANCE REPORT =====\n");
+    printf("Student: %s (%s)\n", s.name, s.reg);
+    printf("%-22s %4s %8s %5s  %s\n", "Course", "Held", "Attended", "%", "Status");
+    for(i = 0; i < s.n; i++){
+        double p = s.c[i].held ? 100.0 * s.c[i].attended / s.c[i].held : 0.0;
+        h += s.c[i].held; a += s.c[i].attended;
+        printf("%-22s %4d %8d %5.1f  %s\n", s.c[i].name, s.c[i].held, s.c[i].attended, p, p >= 75.0 ? "OK" : "SHORTAGE");
+    }
+    printf("Overall attendance: %.1f%%\n", h ? 100.0 * a / h : 0.0);
+}
+
+void progressReport(void){
+    int i, sum = 0, pts = 0, fail = 0;
+    double pct, gpa;
+    printf("===== PROGRESS REPORT =====\n");
+    printf("Student: %s (%s)\n", s.name, s.reg);
+    printf("%-22s %5s %-5s %s\n", "Course", "Marks", "Grade", "Remark");
+    for(i = 0; i < s.n; i++){
+        int m = s.c[i].marks;
+        sum += m; pts += points(m); if(m < 50) fail = 1;
+        printf("%-22s %5d %-5s %s\n", s.c[i].name, m, grade(m), remark(m));
+    }
+    pct = (double)sum / s.n; gpa = (double)pts / s.n;
+    printf("Percentage : %.1f%%\n", pct);
+    printf("GPA        : %.2f\n", gpa);
+    printf("Overall     : %s\n", fail ? "Needs improvement" : pct >= 75 ? "Distinction" : pct >= 60 ? "First class" : "Second class");
+}
+
+void markSheet(void){
+    int i, sum = 0, pts = 0, fail = 0;
+    printf("===== SEMESTER MARK SHEET =====\n");
+    printf("Semester: %d\n", s.semester);
+    printf("Name    : %s\n", s.name);
+    printf("Reg no  : %s\n", s.reg);
+    printf("%-22s %5s %-5s %6s  %s\n", "Course", "Marks", "Grade", "Points", "Result");
+    for(i = 0; i < s.n; i++){
+        int m = s.c[i].marks;
+        sum += m; pts += points(m); if(m < 50) fail = 1;
+        printf("%-22s %5d %-5s %6d  %s\n", s.c[i].name, m, grade(m), points(m), m >= 50 ? "PASS" : "FAIL");
+    }
+    printf("Total      : %d / %d\n", sum, s.n * 100);
+    printf("Percentage : %.1f%%\n", (double)sum / s.n);
+    printf("GPA        : %.2f\n", (double)pts / s.n);
+    printf("Result     : %s\n", fail ? "FAIL" : "PASS");
+}
+
+int main(void){
+    int choice;
+    printf("===== STUDENT INFORMATION SYSTEM =====\n");
+    printf("1. Student information\n2. Attendance report\n3. Progress report\n4. Semester mark sheet\n");
+    printf("Enter choice: ");
+    if(scanf("%d", &choice) != 1) return 1;
+    printf("\n");
+    switch(choice){
+        case 1: showInfo(); break;
+        case 2: attendanceReport(); break;
+        case 3: progressReport(); break;
+        case 4: markSheet(); break;
+        default: printf("Invalid choice\n");
+    }
+    return 0;
+}
+`}
+//PURE-END
+
+function addRow(n="",m="",h="",a=""){
+const d=document.createElement("div");d.className="crs";
+d.innerHTML=`<input aria-label="Course name" value="${n}"><input aria-label="Marks" type="number" min="0" max="100" value="${m}"><input aria-label="Classes held" type="number" min="0" value="${h}"><input aria-label="Classes attended" type="number" min="0" value="${a}"><button class="btn ghost sm" aria-label="Remove course">Remove</button>`;
+d.querySelector("button").onclick=()=>{d.remove();refresh()};$("cr").appendChild(d)}
+[["Data Structures",86,40,37],["Database Systems",74,38,28],["Operating Systems",62,36,35],["Engineering Mathematics",48,42,30]].forEach(r=>addRow(...r));
+$("addC").onclick=()=>{if($("cr").children.length>=6){say("A student can have at most 6 courses.",1);return}addRow();refresh()};
+
+const say=(t,bad)=>{$("msg").textContent=t;$("msg").className=bad?"bad":"ok"};
+function read(){
+const v=id=>$(id).value.trim();
+const rows=[...$("cr").children].map(r=>{const i=r.querySelectorAll("input");return{name:i[0].value.trim(),marks:i[1].value,held:i[2].value,att:i[3].value}});
+if(!v("fn")||!v("fr")||!v("fa"))return"Enter the student's name, reg no. and address.";
+if(!/^\d{10}$/.test(v("fp")))return"Phone must be 10 digits.";
+if(!(+v("fg")>=15&&+v("fg")<=40))return"Age must be between 15 and 40.";
+if(!(+v("fs")>=1&&+v("fs")<=8))return"Semester must be between 1 and 8.";
+if(!rows.length)return"Add at least one course.";
+for(const r of rows){
+if(!r.name||r.marks===""||r.held===""||r.att==="")return"Fill in the name, marks, classes held and attended for every course.";
+if(+r.marks<0||+r.marks>100)return`Marks for ${r.name} must be between 0 and 100.`;
+if(+r.att<0||+r.att>+r.held)return`Attended classes for ${r.name} can't be more than classes held.`;}
+return{name:v("fn"),reg:v("fr"),addr:v("fa"),phone:v("fp"),age:+v("fg"),sem:+v("fs"),c:rows.map(r=>({name:r.name,marks:+r.marks,held:+r.held,att:+r.att}))};}
+function refresh(){const s=read();if(typeof s==="string")return null;const N=norm(s);$("code").textContent=genC(N);return N}
+$("run").onclick=()=>{
+const s=read();if(typeof s==="string"){say(s,1);return}
+const N=norm(s),ch=+$("ch").value;$("code").textContent=genC(N);
+$("out").textContent="$ gcc student.c -o student\n$ ./student\n"+MENU+ch+"\n\n"+report(N,ch);
+say("Compiled and ran with no errors.");tab("out")};
+function tab(v){document.querySelectorAll(".tabs button").forEach(b=>b.setAttribute("aria-selected",b.dataset.v===v));$("out").classList.toggle("hide",v!=="out");$("code").classList.toggle("hide",v!=="code")}
+document.querySelectorAll(".tabs button").forEach(b=>b.onclick=()=>tab(b.dataset.v));
+document.querySelectorAll("main input").forEach(i=>i.addEventListener("input",refresh));
+$("cr").addEventListener("input",refresh);
+refresh();
+</script>
+</body>
+</html>
